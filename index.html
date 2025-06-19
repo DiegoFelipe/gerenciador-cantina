@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cantina Acampamento</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121212">
+<link rel="icon" href="icon-192.png">
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+</head>
+<body>
+<h1>Gerenciador de Cantina</h1>
+<button onclick="abrirModal('modalPessoa')">👥 Gerenciar Pessoas</button>
+<button onclick="abrirModal('modalItem')">📦 Gerenciar Itens</button>
+<div class="section">
+  <h2>Gerenciar Contas</h2>
+  <label>Pessoa:</label>
+  <select id="selectPessoa"></select><br>
+  <label>Adicionar Item:</label>
+  <select id="selectItem"></select>
+  <input type="number" id="quantidadeItem" class="input-small" min="1" value="1">
+  <button onclick="comprarItem()">Adicionar Item</button><br>
+  <label>Adicionar Dinheiro (R$):</label>
+  <input type="number" id="valorDinheiro" step="0.01">
+  <button onclick="adicionarDinheiro()">Adicionar Dinheiro</button><br>
+</div>
+<div class="section">
+  <h2>Contas</h2>
+  <label>Pesquisar:</label>
+  <input type="text" id="pesquisaNome" oninput="atualizarTabela()">
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Total Adicionado (R$)</th>
+        <th>Itens</th>
+        <th>Saldo (R$)</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaContas"></tbody>
+  </table>
+  <button onclick="exportarCSV()">Exportar CSV</button>
+</div>
+</body>
+</html>
