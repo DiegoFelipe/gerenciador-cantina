@@ -1,53 +1,426 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cantina Acampamento</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#121212">
-<link rel="icon" href="icon-192.png">
-<script src="app.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
-</script>
-</head>
-<body>
-<h1>Gerenciador de Cantina</h1>
-<button onclick="abrirModal('modalPessoa')">👥 Gerenciar Pessoas</button>
-<button onclick="abrirModal('modalItem')">📦 Gerenciar Itens</button>
-<div class="section">
-  <h2>Gerenciar Contas</h2>
-  <label>Pessoa:</label>
-  <select id="selectPessoa"></select><br>
-  <label>Adicionar Item:</label>
-  <select id="selectItem"></select>
-  <input type="number" id="quantidadeItem" class="input-small" min="1" value="1">
-  <button onclick="comprarItem()">Adicionar Item</button><br>
-  <label>Adicionar Dinheiro (R$):</label>
-  <input type="number" id="valorDinheiro" step="0.01">
-  <button onclick="adicionarDinheiro()">Adicionar Dinheiro</button><br>
-</div>
-<div class="section">
-  <h2>Contas</h2>
-  <label>Pesquisar:</label>
-  <input type="text" id="pesquisaNome" oninput="atualizarTabela()">
-  <table>
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Telefone</th>
-        <th>Total Adicionado (R$)</th>
-        <th>Itens</th>
-        <th>Saldo (R$)</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody id="tabelaContas"></tbody>
-  </table>
-  <button onclick="exportarCSV()">Exportar CSV</button>
-</div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NOVA ACAMP - Controle de Cantina</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background-color: #121212;
+        color: #eee;
+        margin: 20px;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #fff;
+      }
+      .section {
+        border: 1px solid #333;
+        background-color: #1e1e1e;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+      label {
+        display: inline-block;
+        width: 120px;
+        color: #ddd;
+      }
+      input,
+      select {
+        padding: 6px;
+        background-color: #2a2a2a;
+        border: 1px solid #444;
+        color: #eee;
+        border-radius: 5px;
+      }
+      button {
+        padding: 6px 12px;
+        background-color: #2196f3;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 5px;
+      }
+      button:hover {
+        background-color: #1976d2;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      th,
+      td {
+        border: 1px solid #444;
+        padding: 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background-color: #222;
+      }
+      .input-small {
+        width: 50px;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background-color: #2a2a2a;
+        padding: 20px;
+        border-radius: 10px;
+        width: 400px;
+      }
+      .modal-content h3 {
+        margin-top: 0;
+      }
+      .close {
+        float: right;
+        cursor: pointer;
+        font-weight: bold;
+        color: #bbb;
+      }
+      .close:hover {
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Gerenciador de Cantina - NOVA ACAMP</h1>
+
+    <div class="section">
+      <h2>Gerenciar Contas</h2>
+      <label>Pessoa:</label>
+      <select id="selectPessoa"></select
+      ><br />
+
+      <label>Adicionar Item:</label>
+      <select id="selectItem"></select>
+      <input type="number" id="quantidadeItem" class="input-small" min="1" value="1" />
+      <button onclick="comprarItem()">Adicionar Item</button><br />
+
+      <label>Adicionar Dinheiro (R$):</label>
+      <input type="number" id="valorDinheiro" step="0.01" />
+      <button onclick="adicionarDinheiro()">Adicionar Dinheiro</button><br /><br />
+
+      <button onclick="abrirModal('modalPessoa')">👥 Gerenciar Pessoas</button>
+      <button onclick="abrirModal('modalItem')">📦 Gerenciar Itens</button>
+    </div>
+
+    <div class="section">
+      <h2>Contas</h2>
+      <label>Pesquisar:</label>
+      <input type="text" id="pesquisaNome" oninput="atualizarTabela()" />
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Itens</th>
+            <th>Saldo (R$)</th>
+            <th>Total Adicionado (R$)</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaContas"></tbody>
+      </table>
+      <button onclick="exportarCSV()">Exportar CSV</button>
+    </div>
+
+    <!-- Modal Pessoas -->
+    <div class="modal" id="modalPessoa">
+      <div class="modal-content">
+        <span class="close" onclick="fecharModal('modalPessoa')">&times;</span>
+        <h3>Gerenciar Pessoas</h3>
+        <label>Nome:</label><input type="text" id="nomePessoa" /><br />
+        <label>Telefone:</label><input type="text" id="telefonePessoa" /><br />
+        <button onclick="adicionarPessoa()">Adicionar Pessoa</button>
+
+        <h4>Pessoas:</h4>
+        <ul id="listaPessoas"></ul>
+      </div>
+    </div>
+
+    <!-- Modal Itens -->
+    <div class="modal" id="modalItem">
+      <div class="modal-content">
+        <span class="close" onclick="fecharModal('modalItem')">&times;</span>
+        <h3>Gerenciar Itens</h3>
+        <label>Item:</label><input type="text" id="nomeItem" /><br />
+        <label>Preço (R$):</label><input type="number" id="precoItem" step="0.01" /><br />
+        <button onclick="adicionarItem()">Adicionar/Atualizar Item</button>
+
+        <h4>Itens:</h4>
+        <ul id="listaItens"></ul>
+      </div>
+    </div>
+
+    <script>
+      let pessoas = [];
+      let itens = [];
+
+      window.onload = () => {
+        const dados = localStorage.getItem("cantina");
+        if (dados) {
+          const obj = JSON.parse(dados);
+          pessoas = obj.pessoas || [];
+          itens = obj.itens || [];
+        }
+        atualizarSelectPessoas();
+        atualizarSelectItens();
+        atualizarTabela();
+        atualizarListaPessoas();
+        atualizarListaItens();
+      };
+
+      function salvarLocal() {
+        localStorage.setItem("cantina", JSON.stringify({ pessoas, itens }));
+      }
+
+      function abrirModal(id) {
+        document.getElementById(id).style.display = "flex";
+      }
+
+      function fecharModal(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
+      function adicionarPessoa() {
+        const nome = document.getElementById("nomePessoa").value.trim();
+        const telefone = document.getElementById("telefonePessoa").value.trim();
+        if (!nome || !telefone) {
+          alert("Preencha nome e telefone.");
+          return;
+        }
+        pessoas.push({ nome, telefone, saldo: 0, compras: [], totalAdicionado: 0 });
+        atualizarSelectPessoas();
+        atualizarTabela();
+        atualizarListaPessoas();
+        salvarLocal();
+        document.getElementById("nomePessoa").value = "";
+        document.getElementById("telefonePessoa").value = "";
+      }
+
+      function removerPessoa(index) {
+        if (confirm("Remover esta pessoa?")) {
+          pessoas.splice(index, 1);
+          atualizarSelectPessoas();
+          atualizarTabela();
+          atualizarListaPessoas();
+          salvarLocal();
+        }
+      }
+
+      function limparConta(index) {
+        if (confirm("Deseja realmente apagar esta conta? A pessoa será removida completamente.")) {
+          pessoas.splice(index, 1);
+          atualizarSelectPessoas();
+          atualizarTabela();
+          atualizarListaPessoas();
+          salvarLocal();
+        }
+      }
+
+      function atualizarListaPessoas() {
+        const ul = document.getElementById("listaPessoas");
+        ul.innerHTML = "";
+        pessoas.forEach((p, i) => {
+          const li = document.createElement("li");
+          li.innerHTML = `${p.nome} (${p.telefone}) 
+      <button onclick="removerPessoa(${i})">Remover</button>`;
+          ul.appendChild(li);
+        });
+      }
+
+      function adicionarItem() {
+        const nome = document.getElementById("nomeItem").value.trim();
+        const preco = parseFloat(document.getElementById("precoItem").value);
+        if (!nome || isNaN(preco) || preco <= 0) {
+          alert("Preencha nome e preço válido.");
+          return;
+        }
+        const existente = itens.find((i) => i.nome.toLowerCase() === nome.toLowerCase());
+        if (existente) {
+          existente.preco = preco;
+        } else {
+          itens.push({ nome, preco });
+        }
+        atualizarSelectItens();
+        atualizarListaItens();
+        salvarLocal();
+        document.getElementById("nomeItem").value = "";
+        document.getElementById("precoItem").value = "";
+      }
+
+      function removerItem(index) {
+        if (confirm("Remover este item?")) {
+          itens.splice(index, 1);
+          atualizarSelectItens();
+          atualizarListaItens();
+          salvarLocal();
+        }
+      }
+
+      function atualizarListaItens() {
+        const ul = document.getElementById("listaItens");
+        ul.innerHTML = "";
+        itens.forEach((item, i) => {
+          const li = document.createElement("li");
+          li.innerHTML = `${item.nome} (R$${item.preco.toFixed(2)}) 
+      <button onclick="removerItem(${i})">Remover</button>`;
+          ul.appendChild(li);
+        });
+      }
+
+      function atualizarSelectPessoas() {
+        const select = document.getElementById("selectPessoa");
+        select.innerHTML = '<option value="">Selecione</option>';
+        pessoas.forEach((p, i) => {
+          const option = document.createElement("option");
+          option.value = i;
+          option.text = `${p.nome} (${p.telefone})`;
+          select.add(option);
+        });
+      }
+
+      function atualizarSelectItens() {
+        const select = document.getElementById("selectItem");
+        select.innerHTML = '<option value="">Selecione</option>';
+        itens.forEach((item, i) => {
+          const option = document.createElement("option");
+          option.value = i;
+          option.text = `${item.nome} (R$${item.preco.toFixed(2)})`;
+          select.add(option);
+        });
+      }
+
+      function comprarItem() {
+        const pessoaIndex = document.getElementById("selectPessoa").value;
+        const itemIndex = document.getElementById("selectItem").value;
+        const quantidade = parseInt(document.getElementById("quantidadeItem").value);
+        if (pessoaIndex === "" || itemIndex === "" || isNaN(quantidade) || quantidade <= 0) {
+          alert("Selecione uma pessoa, um item e quantidade válida.");
+          return;
+        }
+        const item = itens[itemIndex];
+        const pessoa = pessoas[pessoaIndex];
+
+        const existente = pessoa.compras.find((c) => c.nome === item.nome);
+        if (existente) {
+          existente.qtd += quantidade;
+        } else {
+          pessoa.compras.push({ nome: item.nome, qtd: quantidade, preco: item.preco });
+        }
+        pessoa.saldo -= item.preco * quantidade;
+        atualizarTabela();
+        salvarLocal();
+
+        document.getElementById("quantidadeItem").value = 1;
+        document.getElementById("selectPessoa").value = "";
+        document.getElementById("selectItem").value = "";
+      }
+
+      function adicionarDinheiro() {
+        const pessoaIndex = document.getElementById("selectPessoa").value;
+        const valor = parseFloat(document.getElementById("valorDinheiro").value);
+        if (pessoaIndex === "" || isNaN(valor) || valor <= 0) {
+          alert("Selecione uma pessoa e informe um valor válido.");
+          return;
+        }
+        const pessoa = pessoas[pessoaIndex];
+        pessoa.saldo += valor;
+        pessoa.totalAdicionado = (pessoa.totalAdicionado || 0) + valor;
+        atualizarTabela();
+        salvarLocal();
+
+        document.getElementById("valorDinheiro").value = "";
+        document.getElementById("selectPessoa").value = "";
+      }
+
+      function atualizarTabela() {
+        const pesquisa = document.getElementById("pesquisaNome").value.toLowerCase();
+        const tbody = document.getElementById("tabelaContas");
+        tbody.innerHTML = "";
+        pessoas.forEach((pessoa, idx) => {
+          if (!pessoa.nome.toLowerCase().includes(pesquisa)) return;
+
+          const itensComprados =
+            pessoa.compras
+              .map(
+                (c, i) =>
+                  `${c.nome} x 
+        <input class="input-small" type="number" min="0" value="${c.qtd}" 
+        onchange="alterarQuantidade(${idx}, ${i}, this.value)">`
+              )
+              .join("<br>") || "-";
+
+          const totalItens = pessoa.compras.reduce((sum, c) => sum + c.preco * c.qtd, 0);
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+        <td>${pessoa.nome}</td>
+        <td>${pessoa.telefone}</td>
+        <td>
+          ${itensComprados}
+          ${
+            itensComprados !== "-"
+              ? `<br><b>Total Itens: R$ ${totalItens.toFixed(2).replace(".", ",")}</b>`
+              : ""
+          }
+        </td>
+        <td>${pessoa.saldo.toFixed(2).replace(".", ",")}</td>
+        <td>${(pessoa.totalAdicionado || 0).toFixed(2).replace(".", ",")}</td>
+        <td><button onclick="limparConta(${idx})">🗑️ Clear</button></td>
+      `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function alterarQuantidade(pessoaIdx, itemIdx, novaQtd) {
+        novaQtd = parseInt(novaQtd);
+        if (isNaN(novaQtd) || novaQtd < 0) return;
+        const pessoa = pessoas[pessoaIdx];
+        const compra = pessoa.compras[itemIdx];
+        const diferenca = novaQtd - compra.qtd;
+        pessoa.saldo -= diferenca * compra.preco;
+        if (novaQtd === 0) {
+          pessoa.compras.splice(itemIdx, 1);
+        } else {
+          compra.qtd = novaQtd;
+        }
+        atualizarTabela();
+        salvarLocal();
+      }
+
+      function exportarCSV() {
+        let csv = "Nome,Telefone,Saldo,Total Adicionado\n";
+        pessoas.forEach((p) => {
+          csv += `"${p.nome}","${p.telefone}","${p.saldo.toFixed(2).replace(".", ",")}","${(
+            p.totalAdicionado || 0
+          )
+            .toFixed(2)
+            .replace(".", ",")}"\n`;
+        });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "contas_cantina.csv";
+        link.click();
+      }
+    </script>
+  </body>
 </html>
